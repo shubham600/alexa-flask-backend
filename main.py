@@ -1,9 +1,10 @@
 import openai
 import os
-
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-from flask import Flask, request, jsonify
 import random
+from flask import Flask, request, jsonify
+
+# Set OpenAI API key from environment
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 app = Flask(__name__)
 user_memory = {}
@@ -27,7 +28,7 @@ def alexa_skill():
     intent = None
     session_id = data.get("session", {}).get("user", {}).get("userId", "anonymous")
 
-    # Handle LaunchRequest (when user opens the skill)
+    # Handle LaunchRequest
     if data["request"]["type"] == "LaunchRequest":
         return jsonify(build_response("Hey! I'm your buddy. What would you like to do?"))
 
@@ -82,48 +83,25 @@ def alexa_skill():
             except:
                 question = ""
 
-            responses = {
-                "moon": "The moon is Earth’s only natural satellite. It controls tides and lights the night sky.",
-                "cat": "Cats are small carnivorous mammals known for agility, curiosity, and purring.",
-                "ai": "AI stands for Artificial Intelligence, which allows machines to think and learn like humans.",
-                "sun": "The sun is a massive ball of gas that provides light and heat to our solar system."
-            }
-
-            answer = "Hmm, I’m still learning! But that’s an interesting question."
-            for key in responses:
-                if key in question.lower():
-                    answer = responses[key]
+            if question:
+                try:
+                    response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are My Buddy, a friendly, fun, helpful companion who talks casually like a buddy. You remember things told to you earlier in the conversation."},
+                            {"role": "user", "content": question}
+                        ],
+                        temperature=0.8,
+                        max_tokens=200
+                    )
+                    answer = response.choices[0].message.content.strip()
+                except Exception as e:
+                    print(f"OpenAI Error: {e}")
+                    answer = "Oops! My brain glitched talking to the AI. Can you ask again?"
+            else:
+                answer = "Hmm, I didn’t catch that. Can you repeat your question?"
 
             return jsonify(build_response(answer))
 
     # Default fallback
     return jsonify(build_response("Sorry, I didn’t understand that. Try asking in a different way!"))
-    import openai
-import os
-
-# Set your key from Render's environment
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-elif intent == "ChatGPTIntent":
-    try:
-        question = data['request']['intent']['slots']['question']['value']
-    except:
-        question = ""
-
-    if question:
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a friendly assistant."},
-                    {"role": "user", "content": question}
-                ]
-            )
-            answer = response.choices[0].message.content
-        except Exception as e:
-            answer = "Oops, something went wrong talking to the AI."
-    else:
-        answer = "Can you please ask your question again?"
-
-    return jsonify(build_response(answer))
-
