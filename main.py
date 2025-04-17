@@ -1,10 +1,26 @@
-intent = None
 try:
     intent = data['request']['intent']['name']
 except:
     pass
 
-if intent == "JokeIntent":
+# 🧠 Memory: Store user statements
+if intent == "RememberColorIntent":
+    try:
+        color = data['request']['intent']['slots']['color']['value']
+        user_memory[session_id] = {"favorite_color": color}
+        return jsonify(build_response(f"Okay, I’ll remember that your favorite color is {color}."))
+    except:
+        return jsonify(build_response("Hmm, I didn’t catch the color. Can you say it again?"))
+
+# 🧠 Memory: Recall stored info
+elif intent == "RecallColorIntent":
+    color = user_memory.get(session_id, {}).get("favorite_color", None)
+    if color:
+        return jsonify(build_response(f"You told me your favorite color is {color}."))
+    else:
+        return jsonify(build_response("I don’t remember your favorite color yet. Please tell me!"))
+
+elif intent == "JokeIntent":
     jokes = [
         "Why did the tomato turn red? Because it saw the salad dressing!",
         "Why don't scientists trust atoms? Because they make up everything!",
@@ -37,7 +53,6 @@ elif intent == "ChatGPTIntent":
     except:
         question = ""
 
-    # Simple simulated ChatGPT-style responses
     responses = {
         "moon": "The moon is Earth’s only natural satellite. It controls tides and lights the night sky.",
         "cat": "Cats are small carnivorous mammals known for agility, curiosity, and purring.",
