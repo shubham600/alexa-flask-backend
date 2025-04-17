@@ -94,3 +94,32 @@ def alexa_skill():
 
     # Default fallback
     return jsonify(build_response("Sorry, I didn’t understand that. Try asking in a different way!"))
+    import openai
+import os
+
+# Set your key from Render's environment
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+
+elif intent == "ChatGPTIntent":
+    try:
+        question = data['request']['intent']['slots']['question']['value']
+    except:
+        question = ""
+
+    if question:
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a friendly assistant."},
+                    {"role": "user", "content": question}
+                ]
+            )
+            answer = response.choices[0].message.content
+        except Exception as e:
+            answer = "Oops, something went wrong talking to the AI."
+    else:
+        answer = "Can you please ask your question again?"
+
+    return jsonify(build_response(answer))
+
