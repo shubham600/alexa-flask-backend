@@ -1,73 +1,56 @@
-from flask import Flask, request, jsonify
+intent = None
+try:
+    intent = data['request']['intent']['name']
+except:
+    pass
 
-app = Flask(__name__)
+if intent == "JokeIntent":
+    jokes = [
+        "Why did the tomato turn red? Because it saw the salad dressing!",
+        "Why don't scientists trust atoms? Because they make up everything!",
+        "What do you call fake spaghetti? An impasta!"
+    ]
+    return jsonify(build_response(random.choice(jokes)))
 
-@app.route("/", methods=["GET"])
-def index():
-    return "Alexa Skill Server is Running"
+elif intent == "AdviceIntent":
+    advice = [
+        "Always believe in yourself.",
+        "Stay hydrated and get enough sleep.",
+        "Never stop learning — every day is a chance to grow."
+    ]
+    return jsonify(build_response(random.choice(advice)))
 
-@app.route("/", methods=["POST"])
-def webhook():
-    return jsonify({
-        "version": "1.0",
-        "response": {
-            "outputSpeech": {
-                "type": "PlainText",
-                "text": "Hello from your Alexa skill on Render!"
-            },
-            "shouldEndSession": False
-        }
-    })
+elif intent == "StoryIntent":
+    stories = [
+        "Once upon a time, a tiny bird dreamed of flying to the moon...",
+        "In a faraway land, a clever fox outwitted a greedy lion...",
+        "Long ago, a girl found a magical pebble that glowed in the dark..."
+    ]
+    return jsonify(build_response(random.choice(stories)))
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-@app.route('/', methods=['POST'])
-def alexa_webhook():
-    data = request.get_json()
+elif intent == "MyBuddyIntent":
+    return jsonify(build_response("Hey there! I'm your buddy. How can I help today?"))
 
-    intent = None
+elif intent == "ChatGPTIntent":
     try:
-        intent = data['request']['intent']['name']
+        question = data['request']['intent']['slots']['question']['value']
     except:
-        pass
+        question = ""
 
-    if data['request']['type'] == "LaunchRequest":
-        return jsonify(build_response("Hi! My Buddy is online and ready to talk!"))
-
-    elif intent == "JokeIntent":
-        joke = random.choice([
-            "Why don’t scientists trust atoms? Because they make up everything!",
-            "What do you call fake spaghetti? An impasta.",
-            "Why did the scarecrow win an award? Because he was outstanding in his field."
-        ])
-        return jsonify(build_response(joke))
-
-    elif intent == "AdviceIntent":
-        advice = random.choice([
-            "Don't be afraid to fail. It's how we grow.",
-            "Always believe in yourself.",
-            "Be kind. Everyone’s fighting a battle you can’t see."
-        ])
-        return jsonify(build_response(advice))
-
-    elif intent == "StoryIntent":
-        story = "Once upon a time, there was a curious little robot who learned to talk like a human. And now, you're chatting with it!"
-        return jsonify(build_response(story))
-
-    elif intent == "MyBuddyIntent":
-        return jsonify(build_response("Hey buddy! I'm here. What would you like to do — joke, story, advice, or just talk?"))
-
-    else:
-        return jsonify(build_response("Sorry, I didn't catch that. Try asking for a joke, a story, or some advice."))
-
-def build_response(text):
-    return {
-        "version": "1.0",
-        "response": {
-            "outputSpeech": {
-                "type": "PlainText",
-                "text": text
-            },
-            "shouldEndSession": False
-        }
+    # Simple simulated ChatGPT-style responses
+    responses = {
+        "moon": "The moon is Earth’s only natural satellite. It controls tides and lights the night sky.",
+        "cat": "Cats are small carnivorous mammals known for agility, curiosity, and purring.",
+        "ai": "AI stands for Artificial Intelligence, which allows machines to think and learn like humans.",
+        "sun": "The sun is a massive ball of gas that provides light and heat to our solar system."
     }
+
+    answer = "Hmm, I’m still learning! But that’s an interesting question."
+    for key in responses:
+        if key in question.lower():
+            answer = responses[key]
+
+    return jsonify(build_response(answer))
+
+else:
+    return jsonify(build_response("Hello from your Alexa skill on Render!"))
